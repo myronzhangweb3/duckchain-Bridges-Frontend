@@ -22,7 +22,7 @@
                 <div class="text-xs">
                     Tx: <a :href="item.direction == 0 ? LAYER1.explorerUrl+'/tx/'+item.transactionHash : ROLLUP.explorerUrl+'/tx/'+item.transactionHash" target="_blank" class="ml-2 text-primary-900 underline cursor-pointer hover:opacity-90">{{ formatAddress(item.transactionHash, 6) }}</a>
                 </div>
-                <div>
+                <div class="text-xs">
                     <div v-if="item.direction === 0 || status == 6" class="text-primary-900 text-sm">Success</div>
                     <div v-else class="text-xs">
                         <div v-if="status >= 0 && status < 3" class="text-primary-900">Wait To Prove(1 ～ 2 hours)</div>
@@ -48,14 +48,16 @@
     </div>
 </template>
 <script setup lang="ts">
-import { useWalletStore } from '@/stores'
+import { useWalletStore, useRollupBridgeStore } from '@/stores'
 import { notifySuccess, notifyError, formatAddress } from '@/libs/utils'
 import { ethers } from 'ethers'
 import { getBridge } from '@/stores/wallet'
 import { LAYER1, ROLLUP, TOKENS, L2Config } from '~~/constants/rollup-bridge/networks'
 import { CrossChainMessenger } from '@eth-optimism/sdk'
+import { getBridgeStatus } from '@/api/api'
 
 const walletStore = useWalletStore()
+const rollupBridgeStore = useRollupBridgeStore()
 
 const status = ref(-1)
 const loading = ref(false)
@@ -119,20 +121,24 @@ const getStatus = async () => {
 }
 
 const getS = async() => {
-    const l1Provider = new ethers.providers.StaticJsonRpcProvider(LAYER1.rpcUrl)
-    const l2Provider = new ethers.providers.StaticJsonRpcProvider(ROLLUP.rpcUrl)
-    const messenger = new CrossChainMessenger({
-        l1ChainId: LAYER1.chainId,
-        l2ChainId: ROLLUP.chainId,
-        l1SignerOrProvider: l1Provider,
-        l2SignerOrProvider: l2Provider,
-        contracts: {
-            l1: {
-                ...L2Config
-            }
+    if (status.value == 6) {
+        return
+    }
+    try {
+        const data = await getBridgeStatus(props.item.transactionHash)
+        const _status = data.op_withdrawals[0].status
+        switch(_status) {
+            case 'Waiting for state root': status.value = 2;break;
+            case 'ready to prove': status.value = 3;break;
+            case 'In challenge period': status.value = 4;break;
+            case 'Ready for relay': status.value = 5;break;
+            case 'Relayed': status.value = 6;break;
         }
-    })
-    status.value = await messenger.getMessageStatus(props.item)
+        console.log(data)
+    } catch {
+        status.value = -1
+    }
+    
 }
 
 const startProve = async() => {
@@ -189,10 +195,13 @@ const startRelay = async() => {
         await tx.wait()
         status.value = 6
         loading.value = false
+        rollupBridgeStore.getLayer1Balances(walletStore.account)
         notifySuccess('Withdraw success!')
     } catch {
         loading.value = false
         notifyError('Withdraw failed!')
     }
 }
+
+
 </script>

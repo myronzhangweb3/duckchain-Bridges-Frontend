@@ -6,13 +6,17 @@ export const BRIDGE_LIST_UPDATE_TIME = 10 * 1000
 const getConfig = (network: string) => {
   switch (network) {
     case 'testnet':
-      return {}
+      return {
+        BRIDGE_SERVICE_API: 'https://alpha-zkrollup-service.lumoz.org/matr1x/transactions/'
+      }
     case 'mainnet':
-      return {}
+      return {
+         BRIDGE_SERVICE_API: 'https://alpha-zkrollup-service.lumoz.org/matr1x/transactions/'
+      }
   }
 }
 
 export const NODE_NETWORKS = []
 
-export const { } = getConfig(NETWORK)
+export const CONFIG = getConfig(NETWORK)
 

@@ -1,24 +1,15 @@
 import request from './request.utils'
+import { CONFIG } from '@/constants'
 
-export async function getBridges(server: string, address: string): Promise<any> {
-  try {
-    return await request.get(`${server}/bridges/${address}?limit=10000&offset=0`)
-  } catch {
-    return {
-      deposits: [],
-      total_cnt: 0
-    }
-  }
+const getBridgeStatusUrl = (url: string) => {
+  return `${CONFIG?.BRIDGE_SERVICE_API}${url}`
 }
 
-// eslint-disable-next-line camelcase
-export async function getMerkleProof(
-  server: string,
-  net_id: number,
-  deposit_cnt: string
-): Promise<any> {
-  return await request.get(
-    // eslint-disable-next-line camelcase
-    `${server}/merkle-proof?net_id=${net_id}&deposit_cnt=${deposit_cnt}`
-  )
+
+export async function getBridgeStatus(tx: string) {
+  try {
+    return (await request.get(getBridgeStatusUrl(tx)))
+  } catch {
+    return []
+  }
 }

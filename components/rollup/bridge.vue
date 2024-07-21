@@ -130,7 +130,7 @@
       </div>
     </div>
     <div class="mt-4 lg:(mt-0 ml-8)">
-      <RollupWithdrawItem v-for="item, index in rollupBridgeStore.activities" :item="item" :key="index" />
+      <RollupWithdrawItem v-for="item in rollupBridgeStore.activities" :item="item" :key="item.transactionHash" />
     </div>
   </div>
 </template>
