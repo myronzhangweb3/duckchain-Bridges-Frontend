@@ -14,7 +14,9 @@
     <el-dialog
       v-model="tokenModal"
       :width="modalWidth"
+      class="lumoz-node-dialog"
       center
+      effect="dark"
       :align-center="true"
       :title="$t('asset.title')"
       :append-to-body="true"
@@ -35,7 +37,7 @@
         <button
           v-for="item in tokens.filter(item => !item.self)"
           :key="item"
-          class="w-full flex items-center justify-between p-1.5 rounded-full mb-2 hover:(border-primary-900 text-primary-900 bg-[#F36C1744])"
+          class="w-full flex items-center justify-between p-1.5 rounded-full mb-2 hover:(border-primary-900 text-primary-900 bg-[#BEFE0044])"
           @click="setToken(item)"
         >
           <div class="flex items-center">

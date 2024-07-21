@@ -41,7 +41,7 @@ const style = computed(() => {
   if (props.disabled) {
     css += ' text-[#aaa]'
   } else {
-    css += ' text-white'
+    css += ' text-black'
   }
  
   return css

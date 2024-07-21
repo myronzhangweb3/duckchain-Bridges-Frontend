@@ -1,5 +1,5 @@
 <template>
-  <div class="relative">
+  <div class="relative lg:flex justify-between">
     <div class="bg-filter bg-[#00000088] rounded-xl overflow-hidden">
       <div class="flex p-4 pb-0" :class="reverse ? 'flex-col-reverse' : 'flex-col'">
         <div>
@@ -38,7 +38,7 @@
                 </div>
                 <div v-if="!reverse" class="flex items-center justify-between">
                   <input v-model="amount" type="number" :min="0" placeholder="0"
-                    class="rounded-lg border bg-[#353533] text-center font-bold text-lg text-primary-900 hover:border-primary-900" step="0.000000000000000001"
+                    class="rounded-lg bg-[#353533] text-right font-bai px-2 py-1 font-bold text-lg text-primary-900 hover:border-primary-900" step="0.000000000000000001"
                     style="outline: none;" :class="overAmount ? 'text-error-900' : 'text-primary-900'" />
                 </div>
                 <h1 v-else class="text-xl w-full lg:w-68 text-right font-bai"
@@ -54,7 +54,7 @@
           <div v-else class="h-4"></div>
         </div>
         <div class="pb-3 pt-4 flex items-center justify-center">
-          <img src="@/assets/img/home/direction.svg" class="opacity-85 hover:opacity-100 w-10 cursor-pointer"
+          <img src="@/assets/img/home/direction.svg" class="opacity-85 hover:opacity-100 w-8 cursor-pointer"
             :class="reverse === false ? 'toggle-down' : reverse === true ? 'toggle-up' : ''" @click="clickReverse" />
         </div>
         <div>
@@ -93,7 +93,7 @@
                 </div>
                 <div v-if="reverse" class="flex items-center justify-between">
                   <input v-model="amount" type="number" :min="0" placeholder="0"
-                    class="rounded-lg border bg-[#353533] text-center font-bold text-lg text-primary-900 hover:border-primary-900" step="0.000000000000000001"
+                    class="rounded-lg bg-[#353533] text-right font-bai px-2 py-1 font-bold text-lg text-primary-900 hover:border-primary-900" step="0.000000000000000001"
                     style="outline: none;" :class="overAmount ? 'text-error-900' : 'text-primary-900'" />
                 </div>
                 <h1 v-else class="text-xl w-full lg:w-68 text-right font-bai"
@@ -126,9 +126,11 @@
             {{ $t('wallet.connect') }}
           </CommonButton>
         </Wallet>
-
         <RollupSubmitButton v-else :submit="submit" :reverse="reverse" :balance="reverse ? rollupBridgeStore.token?.rollupBalance : rollupBridgeStore.token?.layer1Balance" :amount="amount" :fees="fees" :fees-loading="feesLoading" @on-click="confirmButton" />
       </div>
+    </div>
+    <div class="mt-4 lg:(mt-0 ml-8)">
+      <RollupWithdrawItem v-for="item, index in rollupBridgeStore.activities" :item="item" :key="index" />
     </div>
   </div>
 </template>
@@ -310,7 +312,7 @@ async function confirm() {
   }
   amount.value = null
   storeSubmitStatus = {}
-  rollupBridgeStore.addActivity(reversed ? 1 : 0, walletStore.account, token.layer1Address, token.rollupAddress, tx.hash, transAmount, decimals)
+  rollupBridgeStore.initActivities(walletStore.account)
 }
 
 
@@ -439,6 +441,9 @@ const initFinish = (title: string, amount: number, symbol: string, content: stri
   padding-left: 0px;
   padding-bottom: 0px;
   border-radius: 10px 10px 0 0;
+  background: #131313;
+  border: 0;
+  color: white;
 
   .el-notification__group {
     margin: 0;

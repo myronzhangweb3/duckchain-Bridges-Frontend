@@ -4,7 +4,6 @@ import _ from 'lodash'
 import { ethers } from 'ethers'
 import { LAYER1, ROLLUP, TOKENS, L2Config } from '~~/constants/rollup-bridge/networks'
 import { getBalancesByAddresses } from '@/libs/ethers/contract'
-import { NETWORK } from '@/env'
 let timer:any = null
 
 export const useRollupBridgeStore = defineStore('rollup-bridge', {
@@ -83,19 +82,6 @@ export const useRollupBridgeStore = defineStore('rollup-bridge', {
       this.tokens = tokens
     },
     async initActivities(account: string) {
-      if (timer) {
-        clearInterval(timer)
-      }
-      let list: any[] = []
-      try {
-        list = JSON.parse(localStorage.getItem(`matr1x:${NETWORK}:record:${account.toLowerCase()}`))
-        if (!list) {
-          list = []
-        }
-      } catch {
-        list = []
-      }
-      this.activities = list
       await this.getActivities(account)
       timer = setInterval(() => {
         this.getActivities(account)
@@ -106,30 +92,6 @@ export const useRollupBridgeStore = defineStore('rollup-bridge', {
         this.activities = []
         clearInterval(timer)
       }
-    },
-    addActivity(direction: number, address: string, l1Token: string, l2Token: string, transactionHash: string, amount: string, decimals: number) {
-      const item = {
-        direction,
-        from: address,
-        to: address,
-        l1Token,
-        l2Token,
-        transactionHash,
-        amount,
-        decimals
-      }
-
-      this.activities.unshift(item)
-      let list:any[] = []
-      try {
-        list = JSON.parse(localStorage.getItem(`matr1x:${NETWORK}:record:${account.toLowerCase()}`))
-        if (list.length) {
-          list.unshift(item)
-        }
-      } catch {
-        list = [item]
-      }
-      localStorage.setItem(`matr1x:${NETWORK}:record:${address.toLowerCase()}`, JSON.stringify(list))
     },
     async getActivities(account: string) {
       const l1Provider = new ethers.providers.StaticJsonRpcProvider(LAYER1.rpcUrl)
@@ -145,20 +107,8 @@ export const useRollupBridgeStore = defineStore('rollup-bridge', {
           }
         }
       })
-
       const withdrawMessages = await messenger.getWithdrawalsByAddress(account)
-
-      for (let i in withdrawMessages) {
-        const hash = withdrawMessages[i].transactionHash.toLowerCase()
-        const item = this.activities.find(item => item.transactionHash.toLowerCase() == hash)
-        if (item) {
-          item.data = withdrawMessages[i]
-        }
-      }
-      try {
-        localStorage.setItem(`matr1x:${NETWORK}:record:${account.toLowerCase()}`, JSON.stringify(this.activities))
-
-      } catch {}
+      this.activities = withdrawMessages
     }
   }
 })
