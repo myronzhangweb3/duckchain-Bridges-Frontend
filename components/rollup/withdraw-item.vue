@@ -134,7 +134,6 @@ const getS = async() => {
             case 'Ready for relay': status.value = 5;break;
             case 'Relayed': status.value = 6;break;
         }
-        console.log(data)
     } catch {
         status.value = -1
     }
@@ -202,6 +201,4 @@ const startRelay = async() => {
         notifyError('Withdraw failed!')
     }
 }
-
-
 </script>
