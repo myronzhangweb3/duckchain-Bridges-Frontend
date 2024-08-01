@@ -1,11 +1,11 @@
 module.exports = {
   apps: [
     {
-      name: 'lumoz-op-bridge',
+      name: 'ton-layer2-bridge',
       script: './.output/server/index.mjs',
       env: {
         NUXT_HOST: '0.0.0.0',
-        PORT: 10071
+        PORT: 10072
       }
     }
   ]
