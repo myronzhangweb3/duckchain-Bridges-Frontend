@@ -1,34 +1,27 @@
 import MATR1X from '@/assets/img/network/matr1x.jpg'
-import ETH from '@/assets/img/network/eth.svg'
+import TON from '@/assets/img/network/ton.svg'
 import { NETWORK } from '../../env'
-import { ethers } from 'ethers'
 
 const getLayer1 = (network: string) => {
   switch (network) {
     case 'testnet':
       return {
-          layer1: 'Sepolia',
-          name: 'Sepolia',
-          chainId: 11155111,
-          symbol: 'ETH',
-          decimals: 18,
-          rpcUrl: 'https://rpc.ankr.com/eth_sepolia',
-          explorerUrl: 'https://sepolia.etherscan.io/',
-          img: ETH,
-          multicallContractAddress: '0x2a1888ed64ba4ced5b21ff691f30b337504ec34c'
+          layer1: 'TON Testnet',
+          name: 'TON Testnet',
+          chainId: -1,
+          symbol: 'TON',
+          decimals: 9,
+          rpc: '',
+          bridgeContractAddress: 'EQApi2TaBLKseMi9ifC45cGG-zexU4_d4Y8KSnikZRq23f_I',
+          rpcUrl: 'https://testnet.toncenter.com/api/v2/jsonRPC',
+          jettonUrl: 'https://testnet.toncenter.com/api/v3/jetton/wallets',
+          bridgeUrl: 'https://alpha-zkrollup-service.lumoz.org/ton-layer2',
+          explorerUrl: 'https://testnet.tonviewer.com/',
+          img: TON
         }
     case 'mainnet':
       return {
-          // merlin chain info
-          // layer1: 'Ethereum',
-          // name: 'Ethereum',
-          // chainId: 1,
-          // symbol: 'ETH',
-          // decimals: 18,
-          // rpcUrl: 'https://ethereum.publicnode.com',
-          // explorerUrl: 'https://eth.blockscout.com',
-          // img: ETH_IMG,
-          // multicallContractAddress: '0x9695FA23b27022c7DD752B7d64bB5900677ECC21'
+        
         }
     
   }
@@ -39,20 +32,19 @@ const getRollup = (network: string) => {
   switch (network) {
     case 'testnet':
       return {
-        layer1: 'Sepolia',
-        name: 'Matr1x',
-        chainId: 240708,
-        customizeGasName: 'ETH',
-        customizeGasSymbol: 'ETH',
+        layer1: 'TON Testnet',
+        name: 'TON Layer2',
+        chainId: 66432,
+        customizeGasName: 'TON',
+        customizeGasSymbol: 'TON',
         customizeGasDecimals: 18,
         customizeGasAddress: '0x0000000000000000000000000000000000000000',
-        img: MATR1X,
-        rpcUrl: 'https://alpha-zkrollup-rpc.lumoz.org/matr1x',
-        explorerUrl: 'https://matr1x.zkevm.lumoz.info',
-        zkBridgeServerUrl: 'https://alpha-zkrollup-service.lumoz.org/matr1x/',
+        img: TON,
+        rpcUrl: 'https://alpha-zkrollup-rpc.lumoz.org/ton-layer2',
+        explorerUrl: 'http://103.231.86.33:10572',
         isGasFree: false,
-        nativeTokenName: "ETH",
-        nativeTokenSymbol: "ETH",
+        nativeTokenName: "TON",
+        nativeTokenSymbol: "TON",
         nativeTokenDecimals: 18,
         multicallContractAddress: '0x30a89c9cb8e20f6154cebde925d8c2369301364f'
       }
@@ -85,18 +77,18 @@ const getTokens = (network: string) => {
     case 'testnet':
       return [
         {
-          name: 'ETH',
-          symbol: 'ETH',
+          name: 'TON',
+          symbol: 'TON',
           layer1Address: '0x0000000000000000000000000000000000000000',
           rollupAddress: '0x0000000000000000000000000000000000000000',
           rollupDecimals: 18,
-          layer1Decimals: 18
+          layer1Decimals: 9
         },
         {
-          name: 'Matr1x',
-          symbol: 'M1',
-          layer1Address: '0x44cDE76f09F0Bb81d16d1D9a7762A159D4F39FB7',
-          rollupAddress: '0xaFaFe9a2D6629bFE796c1ab56F31CF8504B33191',
+          name: 'USDC',
+          symbol: 'USDC',
+          layer1Address: '0:4BAA6766156E14A8044C1651AFC2CA5B95A9100AC8C2BE5FAA448E4B63B6AEFF',
+          rollupAddress: '0x2346b9587a0ac0b9df6b97802d303a4052645879',
           rollupDecimals: 18,
           layer1Decimals: 18
         }
@@ -106,37 +98,6 @@ const getTokens = (network: string) => {
   }
 }
 
-const getL2Config = (network: string) => {
-  switch (network) {
-    case 'testnet':
-      return {
-        AddressManager: '0x50A505ddB359f90B475B7E4Fb659Ab43246fc953',
-        L1CrossDomainMessenger: '0xd4ceEe20a0b05c3C15A474708e4C9D26664270e8',
-        L1StandardBridge: '0xDAa301A3abeFF04CBC560109DA63b5B30F0F73E9',
-        OptimismPortal: '0x172256616CBEbB37f53E449412D22e0A731682bf',
-        L2OutputOracle: '0x917ce42E207cB3873F3B467Bffa95386544a2e5b',
-        StateCommitmentChain: ethers.constants.AddressZero,
-        CanonicalTransactionChain: ethers.constants.AddressZero,
-        BondManager: ethers.constants.AddressZero
-      }
-    case 'mainnet':
-      return {
-        AddressManager: '0x50A505ddB359f90B475B7E4Fb659Ab43246fc953',
-        L1CrossDomainMessenger: '0xd4ceEe20a0b05c3C15A474708e4C9D26664270e8',
-        L1StandardBridge: '0xDAa301A3abeFF04CBC560109DA63b5B30F0F73E9',
-        OptimismPortal: '0x172256616CBEbB37f53E449412D22e0A731682bf',
-        L2OutputOracle: '0x917ce42E207cB3873F3B467Bffa95386544a2e5b',
-        StateCommitmentChain: ethers.constants.AddressZero,
-        CanonicalTransactionChain: ethers.constants.AddressZero,
-        BondManager: ethers.constants.AddressZero
-      }
-  }
-}
-
-
-
-
 export const LAYER1 = getLayer1(NETWORK)
 export const ROLLUP = getRollup(NETWORK)
 export const TOKENS = getTokens(NETWORK)
-export const L2Config = getL2Config(NETWORK)

@@ -6,10 +6,21 @@
     <client-only>
       <WalletOuter />
     </client-only>
+    <div id="ton-connector" class="hidden"></div>
   </div>
 </template>
 <script setup lang="ts">
-  
+import { Buffer } from 'buffer'
+import { useTonWalletStore } from '@/stores'
+const tonWalletStore = useTonWalletStore()
+
+if (window?.Buffer) {
+  window.Buffer = Buffer
+}
+
+onMounted(() => {
+  tonWalletStore.init()
+})
 </script>
 <style>
 .page-enter-active,

@@ -18,7 +18,7 @@ export default defineConfig({
       colors: {
         primary: {
           500: '#DBFF34',
-          900: '#BEFE00'
+          900: '#07acff'
         },
         text: {
           dark: '#AAAAAA'

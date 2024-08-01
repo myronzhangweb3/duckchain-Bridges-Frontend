@@ -1,7 +1,7 @@
 <template>
   <div>
     <CommonButton
-        v-if="!slotDefault && !walletStore.account" @click="modal.open()" class="ml-8"
+        v-if="!slotDefault && !walletStore.account" @click="modal.open()"
       >
         {{ $t('wallet.connect') }}</CommonButton
     >

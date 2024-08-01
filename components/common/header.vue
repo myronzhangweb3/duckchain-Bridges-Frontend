@@ -15,7 +15,12 @@
         >
         </CommonNavItem>
       </CommonNavItems>
-      <Wallet class="pl-8"/>
+      <div class="flex items-center">
+        <client-only>
+          <TonWallet class="mr-8" />
+        </client-only>
+        <Wallet class="pl-8"/>
+      </div>
     </div>
     <div class="xl:hidden relative">
       <img
@@ -28,8 +33,12 @@
         <el-drawer v-model="menuShow" :with-header="false" :append-to-body="true" :size="400">
           <div class="flex items-center justify-between mb-8">
             <CommonLogo />
-            <div @click="hideMenu">
-              <Wallet  />
+            <div @click="hideMenu" class="flex flex-col items-center">
+              <client-only>
+                <TonWallet />
+              </client-only>
+              <div class="h-8"></div>
+              <Wallet />
             </div>
           </div>
           

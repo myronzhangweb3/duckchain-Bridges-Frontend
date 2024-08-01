@@ -1,5 +1,5 @@
 <template>
-  <div class="relative lg:flex justify-between">
+  <div class="relative">
     <div class="bg-filter bg-[#00000088] rounded-xl overflow-hidden">
       <div class="flex p-4 pb-0" :class="reverse ? 'flex-col-reverse' : 'flex-col'">
         <div>
@@ -109,7 +109,12 @@
           <div v-else class="h-4"></div>
         </div>
       </div>
-      <div class="text-xs px-5 pb-4">
+      <div class="px-6">
+        <div>Recieve L2 Address: </div>
+        <div class="text-sm">{{ walletStore.account }}</div>
+      </div>
+      
+      <div class="text-xs px-6 pb-4 mt-8">
         <div class="flex justify-between items-center mt-2">
           <span class="text-white">Estimated time of arrival</span>
           <div class="">
@@ -121,16 +126,26 @@
         </div>
       </div>
       <div class="px-5 pb-4">
-        <Wallet v-if="!walletStore.account">
+        <!-- <Wallet v-if="!walletStore.account">
           <CommonButton large class="w-full text-base">
             {{ $t('wallet.connect') }}
           </CommonButton>
+        </Wallet> -->
+        <TonWallet v-if="!tonWalletStore.account">
+          <CommonButton large class="w-full text-base mt-4">
+            {{ $t('wallet.connectton') }}
+          </CommonButton>
+        </TonWallet>
+        <Wallet v-if="!walletStore.account">
+          <CommonButton large class="w-full text-base mt-4">
+            {{ $t('wallet.connect') }}
+          </CommonButton>
         </Wallet>
-        <RollupSubmitButton v-else :submit="submit" :reverse="reverse" :balance="reverse ? rollupBridgeStore.token?.rollupBalance : rollupBridgeStore.token?.layer1Balance" :amount="amount" :fees="fees" :fees-loading="feesLoading" @on-click="confirmButton" />
+        <RollupSubmitButton v-if="tonWalletStore.account && walletStore.account" :submit="submit" :reverse="reverse" :balance="reverse ? rollupBridgeStore.token?.rollupBalance : rollupBridgeStore.token?.layer1Balance" :amount="amount" :fees="fees" :fees-loading="feesLoading" @on-click="confirmButton" />
       </div>
     </div>
-    <div class="mt-4 lg:(mt-0 ml-8)">
-      <RollupWithdrawItem v-for="item in rollupBridgeStore.activities" :item="item" :key="item.transactionHash" />
+    <div v-if="rollupBridgeStore.activities.length" class="mt-8">
+      <RollupDepositItem v-for="item in rollupBridgeStore.activities" :item="item" :key="item.sourceChainTxHash" />
     </div>
   </div>
 </template>
@@ -138,14 +153,16 @@
 import { CrossChainMessenger } from '@eth-optimism/sdk'
 import { ElNotification } from 'element-plus'
 import { ethers } from 'ethers'
+import { getJettonWalletAddress } from '@/api/api'
 import { BASE_TOKEN_CONTRACT_URL } from '@/constants'
-import { L2Config } from '@/constants/rollup-bridge/networks'
-import { useWalletStore, useRollupBridgeStore } from '@/stores'
+import { useWalletStore, useRollupBridgeStore, useTonWalletStore } from '@/stores'
 import { getBridge } from '@/stores/wallet'
 import { notifySuccess, notifyError } from '@/libs/utils'
+import { LAYER1 } from '~/constants/rollup-bridge/networks'
 
 const vm = getCurrentInstance()?.proxy
 const walletStore = useWalletStore()
+const tonWalletStore = useTonWalletStore()
 const rollupBridgeStore = useRollupBridgeStore()
 const reverse = ref(false)
 const amount = ref()
@@ -177,14 +194,22 @@ watch(
   () => walletStore.account,
   () => {
     if (walletStore.account) {
-      rollupBridgeStore.getLayer1Balances(walletStore.account)
       rollupBridgeStore.getRollupBalances(walletStore.account)
     }
   }
 )
 
+watch(
+  () => tonWalletStore.account,
+  () => {
+    if (tonWalletStore.account) {
+      rollupBridgeStore.getLayer1Balances(tonWalletStore.account)
+    }
+  }
+)
+
 function clickReverse() {
-  reverse.value = !reverse.value
+  // reverse.value = !reverse.value
 }
 
 async function confirmButton() {
@@ -218,16 +243,21 @@ function storeSubmit() {
     : rollupBridgeStore.layer1.explorerUrl
   const symbol = rollupBridgeStore.token.symbol
   const decimals = reverse.value ? rollupBridgeStore.token.rollupDecimals : rollupBridgeStore.token.layer1Decimals
+  const evmAddress = walletStore.account
+  const tonAddress = tonWalletStore.account
+
   return {
     transAmount,
     transNetwork,
     destNetwork,
+    evmAddress,
     token: JSON.parse(JSON.stringify(rollupBridgeStore.token)),
     tokenContractAddress,
     chainId: rollupBridgeStore.rollup.chainId,
     reversed: reverse.value,
     decimals,
-    symbol
+    symbol,
+    tonAddress
   }
 }
 
@@ -240,13 +270,79 @@ async function confirm() {
     transAmount,
     transNetwork,
     destNetwork,
+    evmAddress,
     tokenContractAddress,
     token,
     decimals,
     reversed,
-    symbol
+    symbol,
+    tonAddress
   } = storeSubmitStatus
+
+  if (!reversed) {
+    submit.value = 4
+    const { beginCell, toNano } = await import('@ton/ton')
+    const { Address } = await import('@ton/core')
+    let _amount = ethers.utils.formatUnits(ethers.utils.parseUnits(transAmount.toString(), token.layer1Decimals).toString(), token.layer1Decimals)
+    _amount = ethers.utils.parseUnits(_amount, token.layer1Decimals).toString()
+    if (tokenContractAddress === BASE_TOKEN_CONTRACT_URL) {
+      // ton token
+      const body = beginCell()
+      .storeUint(0, 32)
+      .storeStringTail(`swapTo#${evmAddress}`)
+      .endCell();
+      
+      const transaction = {
+          messages: [
+              {
+                  address: LAYER1?.bridgeContractAddress,
+                  amount: _amount,
+                  payload: body.toBoc().toString("base64")
+              }
+          ]
+      }
+      await tonWalletStore.wallet.sendTransaction(transaction)
+    } else {
+      const userJettonWallet = await getJettonWalletAddress(tonAddress, tokenContractAddress)
+
+      const body = beginCell()
+          .storeUint(0xf8a7ea5, 32)
+          .storeUint(0, 64)
+          .storeCoins(_amount)
+          .storeAddress(Address.parse(LAYER1?.bridgeContractAddress))
+          .storeAddress(Address.parse(userJettonWallet.user_friendly_address))
+          .storeUint(0, 1)
+          .storeCoins(toNano(0.05))
+          .storeUint(0, 1)
+          .storeUint(0, 32)
+          .storeStringTail(`swapTo#${evmAddress}`)
+          .endCell();
+
+      const transaction = {
+          messages: [
+              {
+                  address: userJettonWallet.address,
+                  amount: "100000000",
+                  payload: body.toBoc().toString("base64")
+              }
+          ]
+      }
+
+    await tonWalletStore.wallet.sendTransaction(transaction);
+    }
+    
+    txHash.value = ''
+    submit.value = 0
+    initFinish(vm?.$t('home.deposit'), transAmount, symbol, vm?.$t('home.arrivel2'))
+    rollupBridgeStore.getLayer1Balances(tonWalletStore.account)
+    amount.value = null
+    storeSubmitStatus = {}
+    rollupBridgeStore.initActivities(tonWalletStore.account)
+    return
+  }
+
   
+
   if (
     !reversed && tokenContractAddress !== BASE_TOKEN_CONTRACT_URL
   ) {
@@ -308,46 +404,16 @@ async function confirm() {
   if (reversed) {
     rollupBridgeStore.getRollupBalances(walletStore.account)
   } else {
-    rollupBridgeStore.getLayer1Balances(walletStore.account)
+    rollupBridgeStore.getLayer1Balances(tonWalletStore.account)
   }
   amount.value = null
   storeSubmitStatus = {}
-  rollupBridgeStore.initActivities(walletStore.account)
+  rollupBridgeStore.initActivities(tonWalletStore.account)
 }
 
 
 const getMessenger = async(reversed: boolean, transNetwork: any, destNetwork: any) => {
-  let messenger:any = null
-  if (!reversed) {
-    const l1Signer = getBridge().web3Provider.getSigner()
-    const l2Provider = new ethers.providers.JsonRpcProvider(destNetwork.rpcUrl)
-    messenger = new CrossChainMessenger({
-      l1ChainId: transNetwork.chainId,
-      l2ChainId: destNetwork.chainId,
-      l1SignerOrProvider: l1Signer,
-      l2SignerOrProvider: l2Provider,
-      contracts: {
-        l1: {
-          ...L2Config
-        }
-      }
-    })
-  } else {
-    const l1Provider = new ethers.providers.JsonRpcProvider(destNetwork.rpcUrl)
-    const l2Signer = getBridge().web3Provider.getSigner()
-    messenger = new CrossChainMessenger({
-      l1ChainId: destNetwork.chainId,
-      l2ChainId: transNetwork.chainId,
-      l1SignerOrProvider: l1Provider,
-      l2SignerOrProvider: l2Signer,
-      contracts: {
-        l1: {
-          ...L2Config,
-        }
-      }
-    })
-  }
-  return messenger
+ 
 }
 
 

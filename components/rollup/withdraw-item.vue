@@ -52,7 +52,7 @@ import { useWalletStore, useRollupBridgeStore } from '@/stores'
 import { notifySuccess, notifyError, formatAddress } from '@/libs/utils'
 import { ethers } from 'ethers'
 import { getBridge } from '@/stores/wallet'
-import { LAYER1, ROLLUP, TOKENS, L2Config } from '~~/constants/rollup-bridge/networks'
+import { LAYER1, ROLLUP, TOKENS } from '~~/constants/rollup-bridge/networks'
 import { CrossChainMessenger } from '@eth-optimism/sdk'
 import { getBridgeStatus } from '@/api/api'
 
@@ -194,7 +194,7 @@ const startRelay = async() => {
         await tx.wait()
         status.value = 6
         loading.value = false
-        rollupBridgeStore.getLayer1Balances(walletStore.account)
+        // rollupBridgeStore.getLayer1Balances(walletStore.account)
         notifySuccess('Withdraw success!')
     } catch {
         loading.value = false

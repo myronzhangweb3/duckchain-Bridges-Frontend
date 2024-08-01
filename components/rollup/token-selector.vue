@@ -37,7 +37,7 @@
         <button
           v-for="item in tokens.filter(item => !item.self)"
           :key="item"
-          class="w-full flex items-center justify-between p-1.5 rounded-full mb-2 hover:(border-primary-900 text-primary-900 bg-[#BEFE0044])"
+          class="w-full flex items-center justify-between p-1.5 rounded-full mb-2 hover:(border-primary-900 text-primary-900 bg-[#07acff44])"
           @click="setToken(item)"
         >
           <div class="flex items-center">
@@ -78,13 +78,14 @@
 <script setup lang="ts">
 import { LAYER1 } from '@/constants/rollup-bridge/networks'
 import { useCommonModalSize } from '~~/common/hooks/useCommonModalSize'
-import { useRollupBridgeStore, useWalletStore } from '~~/stores'
+import { useRollupBridgeStore, useWalletStore, useTonWalletStore } from '~~/stores'
 
 
 const { modalWidth } = useCommonModalSize()
 const addressReg = /^0x[0-9a-fA-F]{40}$/
 const rollupBridgeStore = useRollupBridgeStore()
 const walletStore = useWalletStore()
+const tonWalletStore = useTonWalletStore()
 const route = useRoute()
 
 const tokenModal = ref(false)
@@ -155,8 +156,11 @@ onMounted(async () => {
     }
   }
   if (walletStore.account && props.admin) {
-    rollupBridgeStore.getLayer1Balances(walletStore.account)
     rollupBridgeStore.getRollupBalances(walletStore.account)
+  }
+
+  if (tonWalletStore.account && props.admin) {
+    rollupBridgeStore.getLayer1Balances(tonWalletStore.account)
   }
 })
 

@@ -1,5 +1,13 @@
 import moment from 'moment'
 import { ElNotification } from 'element-plus'
+import { LAYER1 } from '~/constants/rollup-bridge/networks'
+import TonWeb from "tonweb"
+let tonWeb = null
+if (LAYER1?.rpcUrl) {
+  tonWeb = new TonWeb(new TonWeb.HttpProvider(LAYER1.rpcUrl))
+} else {
+  tonWeb = new TonWeb()
+}
 
 export function formatUnit(num: number) {
   const _num = Math.abs(num)
@@ -68,4 +76,31 @@ export const notifyError = (title = '', text = '') => {
     showClose: false,
     customClass: 'el-notification-error'
   })
+}
+
+
+
+export async function convertTonAddress(address: string, direction: number) {
+  const { Address } = await import('@ton/core')
+  try {
+        // 移除0x前缀
+        const cleanHexAddress = address.replace(/^0x:/, '');
+        
+        // 将hex字符串转换为Buffer
+        const addressBuffer = Buffer.from(cleanHexAddress, 'hex');
+        
+        // 创建Address实例
+        const address = new Address(-1, addressBuffer); // -1表示主网，0表示测试网
+        
+        // 获取user-friendly address
+        const userFriendlyAddress = address.toFriendly();
+
+        return userFriendlyAddress;
+    } catch (error) {
+        console.error("Invalid hex address", error);
+        return null;
+    }
+}
+export function testaaa() {
+  const addr = '0QDpD1KT535x-0qQHbqC0pWrrpjyPicFOyO4tAOAOxNIo-p4'
 }

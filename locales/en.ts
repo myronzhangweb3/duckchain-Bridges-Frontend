@@ -7,9 +7,10 @@ export default {
     gasFaucet: 'Gas Faucet'
   },
   wallet: {
-    connect: 'Connect Wallet',
+    connect: 'Connect L2 Wallet',
+    connectton: 'Connect TON Wallet',
     disconnect: 'Disconnect',
-    title: 'Connect Wallet',
+    title: 'Connect L2 Wallet',
     copySuccess: 'Copied!',
     walletError: 'Connect wallet failed!',
     view: 'View On Explorer',

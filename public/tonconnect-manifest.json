@@ -1,0 +1,7 @@
+{
+    "name": "Your DApp Name",
+    "description": "Your DApp Description",
+    "url": "http://localhost:3000",
+    "icons": [],
+    "permissions": []
+  }

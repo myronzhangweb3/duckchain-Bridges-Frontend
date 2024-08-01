@@ -1,9 +1,18 @@
 import { defineStore } from 'pinia'
-import { CrossChainMessenger } from '@eth-optimism/sdk'
 import _ from 'lodash'
 import { ethers } from 'ethers'
-import { LAYER1, ROLLUP, TOKENS, L2Config } from '~~/constants/rollup-bridge/networks'
+import { LAYER1, ROLLUP, TOKENS } from '~~/constants/rollup-bridge/networks'
 import { getBalancesByAddresses } from '@/libs/ethers/contract'
+import { getJettonWalletAddress, getBridgeRecords } from '@/api/api'
+import TonWeb from "tonweb"
+import { BASE_TOKEN_CONTRACT_URL } from '~/constants'
+let tonWeb = null
+if (LAYER1?.rpcUrl) {
+  tonWeb = new TonWeb(new TonWeb.HttpProvider(LAYER1.rpcUrl))
+} else {
+  tonWeb = new TonWeb()
+}
+
 let timer:any = null
 
 export const useRollupBridgeStore = defineStore('rollup-bridge', {
@@ -45,17 +54,26 @@ export const useRollupBridgeStore = defineStore('rollup-bridge', {
       for (let i in this.tokens) {
         this.tokens[i].layer1Loading = true
       }
-      const layer1Balances = await getBalancesByAddresses(this.layer1, account, this.tokens.map(item => item.layer1Address))
-      
+      const pList = []
       for (let i in this.tokens) {
-        try {
-          let balance = layer1Balances.find(item => item.address === this.tokens[i].layer1Address)?.balance
-          balance = Math.floor(Number(ethers.utils.formatUnits(balance, this.tokens[i].layer1Decimals)) * 10000) / 10000
-          this.tokens[i].layer1Balance = balance
-        } catch(e) {
-          console.log(e.toString())
+        if (this.tokens[i].layer1Address === BASE_TOKEN_CONTRACT_URL) {
+          pList.push(tonWeb.provider.getBalance(account))
+        } else {
+          pList.push(this.getTonJettonBalances(account, this.tokens[i].layer1Address))
         }
+      }
+      const data = await Promise.all(pList)
+      for (let i in this.tokens) {
+        this.tokens[i].layer1Balance = Number(ethers.utils.formatUnits(data[i], this.tokens[i].layer1Decimals))
         this.tokens[i].layer1Loading = false
+      }
+    },
+    async getTonJettonBalances(address:string, tokenAddress: string) {
+      try {
+        const userJettonWallet = await getJettonWalletAddress(address, tokenAddress)
+        return userJettonWallet.balance
+      } catch {
+        return 0
       }
     },
     async getRollupBalances(account: string) {
@@ -85,7 +103,7 @@ export const useRollupBridgeStore = defineStore('rollup-bridge', {
       await this.getActivities(account)
       timer = setInterval(() => {
         this.getActivities(account)
-      }, 2 * 60 * 1000)
+      }, 10 * 1000)
     },
     stopActivities() {
       if (timer) {
@@ -94,21 +112,8 @@ export const useRollupBridgeStore = defineStore('rollup-bridge', {
       }
     },
     async getActivities(account: string) {
-      const l1Provider = new ethers.providers.StaticJsonRpcProvider(LAYER1.rpcUrl)
-      const l2Provider = new ethers.providers.StaticJsonRpcProvider(ROLLUP.rpcUrl)
-      const messenger = new CrossChainMessenger({
-        l1ChainId: LAYER1.chainId,
-        l2ChainId: ROLLUP.chainId,
-        l1SignerOrProvider: l1Provider,
-        l2SignerOrProvider: l2Provider,
-        contracts: {
-          l1: {
-           ...L2Config
-          }
-        }
-      })
-      const withdrawMessages = await messenger.getWithdrawalsByAddress(account)
-      this.activities = withdrawMessages
+      const data = await getBridgeRecords(account)
+      this.activities = data
     }
   }
 })
