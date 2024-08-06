@@ -6,6 +6,7 @@ import { getBalancesByAddresses } from '@/libs/ethers/contract'
 import { getJettonWalletAddress, getBridgeRecords } from '@/api/api'
 import TonWeb from "tonweb"
 import { BASE_TOKEN_CONTRACT_URL } from '~/constants'
+
 let tonWeb = null
 if (LAYER1?.rpcUrl) {
   tonWeb = new TonWeb(new TonWeb.HttpProvider(LAYER1.rpcUrl))
@@ -113,7 +114,9 @@ export const useRollupBridgeStore = defineStore('rollup-bridge', {
     },
     async getActivities(account: string) {
       const data = await getBridgeRecords(account)
-      this.activities = data
+      if (data && data.length) {
+        this.activities = data
+      }
     }
   }
 })

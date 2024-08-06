@@ -13,6 +13,7 @@
   "dependencies": {
     "@element-plus/nuxt": "^1.0.7",
     "@eth-optimism/sdk": "^3.3.2",
+    "@particle-network/auth-core-modal": "^1.5.2",
     "@pinia/nuxt": "^0.5.1",
     "@ton/core": "^0.56.3",
     "@ton/crypto": "^3.3.0",
@@ -32,6 +33,7 @@
     "moment": "^2.30.1",
     "nuxt": "^3.10.3",
     "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "tonweb": "^0.0.66",
     "vue": "^3.4.19",
     "vue-gtag-next": "^1.14.0",

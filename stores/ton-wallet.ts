@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { THEME, TonConnectUI } from '@tonconnect/ui'
-import { notifyError, notifySuccess } from '@/libs/utils'
+import { notifyError } from '@/libs/utils'
 
 export const useTonWalletStore = defineStore('ton-wallet', {
   state: () => ({
@@ -24,14 +24,13 @@ export const useTonWalletStore = defineStore('ton-wallet', {
             this.wallet = tonConnect
             this.wallet.onStatusChange((wallet) => {
                 try {
-                    notifySuccess(wallet.account.toString())
                     this.account = wallet.account.address || ''
                 } catch(e) {
-                    notifyError(e)
+                    this.account = ''
                 }
             })
         } catch(e) {
-            console.log(e)
+            notifyError(222)
         }
     },
     async connectWallet() {

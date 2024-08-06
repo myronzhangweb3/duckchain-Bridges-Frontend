@@ -14,7 +14,7 @@
                 <div class="flex items-center font-normal">
                   <div class="text-[#fff] flex items-center text-xs">
                     {{ $t('home.balance') }}:
-                    <div v-if="walletStore.account" class="text-white">
+                    <div v-if="tonWalletStore.account" class="text-white">
                       <span v-if="!rollupBridgeStore.token?.layer1Loading" class="ml-1 font-bai">
                         {{ rollupBridgeStore.token?.layer1Balance || 0 }}
                         {{ rollupBridgeStore.token?.symbol }}
