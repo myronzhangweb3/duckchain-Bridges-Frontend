@@ -129,7 +129,7 @@ const getS = async() => {
         const _status = data.op_withdrawals[0].status
         switch(_status) {
             case 'Waiting for state root': status.value = 2;break;
-            case 'ready to prove': status.value = 3;break;
+            case 'Ready to prove': status.value = 3;break;
             case 'In challenge period': status.value = 4;break;
             case 'Ready for relay': status.value = 5;break;
             case 'Relayed': status.value = 6;break;
@@ -137,7 +137,6 @@ const getS = async() => {
     } catch {
         status.value = -1
     }
-    
 }
 
 const startProve = async() => {
@@ -163,6 +162,7 @@ const startProve = async() => {
         const tx = await messenger.proveMessage(props.item.transactionHash)
         await tx.wait()
         status.value = 4
+        loading.value = false
         notifySuccess('Prove success!')
     } catch {
         loading.value = false
